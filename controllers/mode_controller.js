@@ -13,62 +13,66 @@ const registerUser = async(req, res, next) => {
             password: hashPassword,
             address: req.body.address,
         });
-        const result = user.save()
-        res.json({ statusCode: 201, body: { message: "new user created !" } })
+        const result = await user.save()
+        res.status(201).json(result)
     } catch (error) {
-        res.json({ statusCode: 404, body: { message: "User Register Failed !" } })
+        res.status(408).json({ message: "User Register Failed !" }, error)
     }
 };
 
 
 
 //  login function
-const loginUser = (req, res) => {
+const loginUser = async(req, res) => {
     try {
-        const email = req.body.email;
-        const password = req.body.password;
-        User.findOne({ email: email }).then((user) => {
+        const {
+            email,
+            password
+        } = req.body;
+        await User.findOne({ email: email }).then((user) => {
             if (!user) {
-                res.status(404).json({ statusCode: 404, body: { message: "User Not Found !" } })
+                res.status(404).json({ message: "User Not Found !" })
             } else {
                 bcrypt.compare(password, user.password, (err, data) => {
                     if (data) {
                         const token = jwt.sign({ user }, "h4d5fe5");
-                        res.json({ statusCode: 201, body: { message: "User Login Successfully", accessToken: token } })
+                        res.status(200).json({ message: " Login Successfully", accessToken: token })
+                    } else {
+                        res.status(401).json({ message: " password error" })
                     }
                 });
             }
         });
     } catch (error) {
-        res.status(404).json({ statusCode: 404, body: { message: "Invalid Credentials" } })
+        res.status(409).json({ message: "User login Failed !" }, error)
     }
 };
 
 
 // create article
-const createArticle = (req, res) => {
+const createArticle = async(req, res) => {
     try {
+        const title = req.body.title
         const article = new Article({
+            id: req.body.id,
             username: req.body.username,
             title: req.body.title,
             body: req.body.body,
         });
-        const result = article.save()
-        res.json({ statusCode: 201, body: { message: "new article created !" } });
+        const result = await article.save()
+        res.status(200).json({ message: "article created by !", title });
     } catch (error) {
-        res.status(404).json({ statusCode: 404, body: { message: "article created Failed !" } });
+        res.status(408).json({ message: "article created Failed !" }, error);
     }
 };
 
 
-const getArticles = (req, res, ) => {
+const getArticles = async(req, res, ) => {
     try {
-        Article.find()
-            .then((result) => {
-                res.send(result);
-            })
+        const result = await Article.find()
+        res.status(200).json(result);
     } catch (error) {
-        res.send(error);
+        res.status(409).send(error);
     }
 };
 
