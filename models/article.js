@@ -16,7 +16,8 @@ const articleSchema = new schema({
         type: String,
         required: true,
         trim: true,
-    }
+    },
+    createdBy: String,
 }, { timestamps: true });
 
 module.exports = mongoose.model("article", articleSchema);

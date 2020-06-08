@@ -2,6 +2,8 @@ const User = require("../models/register");
 const Article = require("../models/article");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const tokenverify = require("./tokenverify")
+
 
 // register user
 const registerUser = async(req, res, next) => {
@@ -14,10 +16,11 @@ const registerUser = async(req, res, next) => {
             address: req.body.address,
         });
         const result = await user.save()
-        res.status(201).json(result)
+        res.status(201).json(result);
     } catch (error) {
-        res.status(408).json({ message: "User Register Failed !" }, error)
+        res.status(408).json({ message: "User Register Failed !" })
     }
+
 };
 
 
@@ -35,7 +38,7 @@ const loginUser = async(req, res) => {
             } else {
                 bcrypt.compare(password, user.password, (err, data) => {
                     if (data) {
-                        const token = jwt.sign({ user }, "h4d5fe5");
+                        const token = jwt.sign({ user }, "shhhhh");
                         res.status(200).json({ message: " Login Successfully", accessToken: token })
                     } else {
                         res.status(401).json({ message: " password error" })
@@ -44,17 +47,20 @@ const loginUser = async(req, res) => {
             }
         });
     } catch (error) {
-        res.status(409).json({ message: "User login Failed !" }, error)
+        // next(error)
+        res.status(409).json({ message: "User login Failed !" })
     }
 };
 
 
 // create article
-const createArticle = async(req, res) => {
+const createArticle = async(req, res, next) => {
     try {
+        const Bearertoken = req.body.Authorization
+        tokenverify.tokenverify.verifytoken(Bearertoken)
         const title = req.body.title
         const article = new Article({
-            id: req.body.id,
+            createdBy: req.body.id,
             username: req.body.username,
             title: req.body.title,
             body: req.body.body,
@@ -62,14 +68,19 @@ const createArticle = async(req, res) => {
         const result = await article.save()
         res.status(200).json({ message: "article created by !", title });
     } catch (error) {
-        res.status(408).json({ message: "article created Failed !" }, error);
+        res.status(408).json({ message: "article created Failed !" });
+        console.log(error);
     }
 };
 
 
+
+
+
 const getArticles = async(req, res, ) => {
     try {
-        const result = await Article.find()
+        console.log(req.headers.authorization);
+        const result = await Article.find({})
         res.status(200).json(result);
     } catch (error) {
         res.status(409).send(error);
